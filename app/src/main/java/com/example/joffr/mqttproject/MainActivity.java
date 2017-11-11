@@ -10,20 +10,34 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
+import android.util.Range;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.DataPointInterface;
+import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.OnDataPointTapListener;
+import com.jjoe64.graphview.series.Series;
+
+import java.lang.reflect.Array;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
 
     private ViewPager mViewPager;
+    GraphView graf;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +63,9 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(view, "A implementar", Snackbar.LENGTH_LONG).show();
             }
         });
+
+        //TODO: IMPLEMENTAR QUALQUER COISA NOVA AQUI EMBAIXO
+
 
     }
 
@@ -80,15 +97,80 @@ public class MainActivity extends AppCompatActivity {
     public static class FragmentMain extends Fragment {
 
         //TODO IMPLEMENTAR O FRAGMENT
+        int count = 1;
+
+        DataPoint[] pontos = new DataPoint[]{
+                new DataPoint(1,1)
+        };
+        DataPoint[] auxpontos;
+
+        LineGraphSeries<DataPoint> series;
+
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
             //TODO: IMPLEMENTAR O INFLA FRAGMENT
 
-            View view = inflater.inflate(R.layout.fragment_main, container, false);
+            final View view = inflater.inflate(R.layout.fragment_main, container, false);
             TextView textView = (TextView) view.findViewById(R.id.section_label);
 //            textView.setText("Helou");
+            final GraphView grafi = (GraphView) view.findViewById(R.id.graph);
+
+            //conjunto de pontos
+            series = new LineGraphSeries<>(pontos);
+
+            //JOGA O CONJUNTO NA VIEW
+            grafi.addSeries(series);
+
+            //zoom e scroll
+            //grafi.getViewport().setScalable(true);
+            //scroll horizontal
+            grafi.getViewport().setScrollable(true);
+            //scroll orizontal e vertical zoom e scrool
+            grafi.getViewport().setScalableY(true);
+            //scroll vertical
+            //grafi.getViewport().setScrollableY(true);
+
+            //JANELA DE EXIBIÇÃO MANUAL
+            // set manual X bounds
+            grafi.getViewport().setXAxisBoundsManual(true);
+            grafi.getViewport().setMinX(1);
+            grafi.getViewport().setMaxX(5);
+
+            // set manual Y bounds
+            grafi.getViewport().setYAxisBoundsManual(true);
+            grafi.getViewport().setMinY(0);
+            grafi.getViewport().setMaxY(5);
+
+            //listener do ponto
+            series.setOnDataPointTapListener(new OnDataPointTapListener() {
+                @Override
+                public void onTap(Series series, DataPointInterface dataPoint) {
+                    Toast.makeText(getContext(), "Você clicou no ponto: "+dataPoint, Toast.LENGTH_SHORT).show();
+                }
+            });
+
+
+            Button botao = (Button) view.findViewById(R.id.botaoAdd);
+            botao.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //TODO ADD PONTOS
+                    count++;
+                    Toast.makeText(getContext(), "contador: "+count, Toast.LENGTH_SHORT).show();
+                    //aux pega os valores guardados para recriar o velho com um novo tamanho
+                    auxpontos = new DataPoint[pontos.length];
+                    auxpontos = pontos.clone();
+                    pontos = new DataPoint[auxpontos.length+1];
+                    for (int i=0; i<auxpontos.length; i++){
+                        pontos[i] = auxpontos[i];
+                    }
+                    pontos[pontos.length-1] = new DataPoint(count, count);
+                    series.resetData(pontos);
+
+                }
+            });
             return view;
         }
     }
